@@ -1,7 +1,6 @@
 # FabLab Internship Projects (Code Repository)
 
 This repository contains separate projects I worked on during my internship at **Singapore Polytechnic FabLab (T1442)**.
-Each project is stored in its own folder with its own code and purpose.
 
 ---
 
