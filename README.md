@@ -1,57 +1,71 @@
-# FabLab Internship Code (SP FabLab / T1442)
+# FabLab Internship Projects (Code Repository)
 
-This repository contains the code I developed and used during my internship at **Singapore Polytechnic FabLab (T1442)**.
-
+This repository contains separate projects I worked on during my internship at **Singapore Polytechnic FabLab (T1442)**.
+Each project is stored in its own folder with its own code and purpose.
 
 ---
 
-## Main Project Folder
+## 1) PivotLab (CDIO Project)
+**Folder:** `CDIO_PivotLab/`  
+**Platform:** ESP32 (Arduino IDE, C++)  
+**Purpose:** Learning tool for secondary school students to understand **pivot, leverage, and moments**.
 
-### `CDIO_PivotLab/`
-This folder contains the full firmware for **PivotLab** (ESP32-based).
+### Key features
+- OLED UI (menu, info page, icons, custom fonts)
+- Rotary encoder navigation + push button logic
+- Servo motor control (smooth stepping)
+- AS5600 magnetic encoder feedback  
+  - I2C for precise angle  
+  - Analog OUT for less precise balance detection
+- Auto-balance + hold logic (deadband / hysteresis / filtering)
+- Saved settings using ESP32 **Preferences (NVS)**
 
-PivotLab includes:
-- OLED menu UI with multiple modes  
-- Rotary encoder navigation + push button  
-- Servo motor control for moving the mechanism  
-- AS5600 magnetic encoder feedback for angle/balance detection  
-- Auto-balance / hold logic and smoothing/filtering  
-- Saving settings using ESP32 non-volatile memory (Preferences / NVS)
+---
 
+## 2) Mood Lamp
+**Platform:** MicroPython  
+**Purpose:** Wi-Fi + touch + web server control for NeoPixels and servos (interactive light installation).
 
-## PivotLab Modes
-
-- **Normal Mode**  
-  User balances the system, then the device moves to a new position. Complete a set number of moves to finish.
-
-- **Infinite Mode**  
-  Similar to Normal Mode but continues until a time limit / condition ends the game.
-
-- **Education Mode**  
-  After balancing, the device shows a question with multiple-choice options to reinforce concepts.
-
-- **Auto-Balance Mode**  
-  Device adjusts servo movement to automatically bring the system close to equilibrium.
-
-- **Settings**  
-  Configure saved angles/values used by the modes. Values persist across restarts using **Preferences (NVS)**.
-
-
-## Hardware / Wiring Notes
-
-### ESP32 I2C (common default)
-PivotLab uses I2C peripherals (OLED + AS5600). Typical ESP32 wiring:
-- **SDA = GPIO 21**
-- **SCL = GPIO 22**
-
-OLED and AS5600 can share the same SDA/SCL lines.
-
-### Other components (project specific)
-- Rotary Encoder: CLK/DT + SW button
-- Servo motor: PWM output pin
-- AS5600: I2C + OUT pin for analog read approach
+### Key features
+- Connects to Wi-Fi and hosts a web server
+- Touch control:
+  - Tap = change mode
+  - Hold = turn off
+- Lighting modes:
+  - Static colour cycling
+  - Rainbow animation
+- Smooth servo movement with randomised behaviour
+- Web endpoints:
+  - `/on`, `/off`
+  - `/rainbow?state=on`
+  - `/brightness?value=###`
+  - `/color1?...`, `/color2?...`, `/color3?...`
 
 
+---
+## 3) Android App (Mood Lamp Controller)  
+**Platform:** Android Studio (Android)
+**Purpose:** Mobile app to control the mood lamp (e.g., power, colours, modes, brightness).
 
-These remain saved after power off/on. Use your “Reset” option (or a reset function) to restore defaults.
+### Key features
+- Simple UI for turning the lamp on/off
+- Colour selection and brightness control
+- Mode switching (e.g., static / rainbow, if supported by firmware)
+- Sends commands to the device over the configured connection method (e.g., Wi-Fi HTTP endpoints / BLE, depending on your setup)
+
+---
+
+
+## 4) OLED Image → Header Converter
+**Platform:** Python  
+**Purpose:** Convert images into `.h` bitmap arrays for OLED rendering.
+
+### Used for
+- Icons
+- Frames / simple animations
+- Custom display assets
+
+---
+
+
 
