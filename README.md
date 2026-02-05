@@ -1,70 +1,173 @@
-# FabLab Internship Projects (Code Repository)
+# ESP32 Auto-Balance & Educational Lever System
 
-This repository contains separate projects I worked on during my internship at **Singapore Polytechnic FabLab (T1442)**.
+An ESP32-based **interactive lever balancing system** featuring multiple operating modes, real-time angle feedback, closed-loop servo control, and an OLED user interface.
 
----
-
-## 1) PivotLab (CDIO Project)
-**Folder:** `CDIO_PivotLab/`  
-**Platform:** ESP32 (Arduino IDE, C++)  
-**Purpose:** Learning tool for secondary school students to understand **pivot, leverage, and moments**.
-
-### Key features
-- OLED UI (menu, info page, icons, custom fonts)
-- Rotary encoder navigation + push button logic
-- Servo motor control (smooth stepping)
-- AS5600 magnetic encoder feedback  
-  - I2C for precise angle  
-  - Analog OUT for less precise balance detection
-- Auto-balance + hold logic (deadband / hysteresis / filtering)
-- Saved settings using ESP32 **Preferences (NVS)**
+Designed for **educational demonstrations**, **interactive gameplay**, and **automatic balance control** using an **AS5600 magnetic encoder**.
 
 ---
 
-## 2) Mood Lamp
-**Platform:** MicroPython  
-**Purpose:** Wi-Fi + touch + web server control for NeoPixels and servos (interactive light installation).
+## ✨ Key Features
 
-### Key features
-- Connects to Wi-Fi and hosts a web server
-- Touch control:
-  - Tap = change mode
-  - Hold = turn off
-- Lighting modes:
-  - Static colour cycling
-  - Rainbow animation
-- Smooth servo movement with randomised behaviour
-- Web endpoints:
-  - `/on`, `/off`
-  - `/rainbow?state=on`
-  - `/brightness?value=###`
-  - `/color1?...`, `/color2?...`, `/color3?...`
-
-
----
-## 3) Android App (Mood Lamp Controller)  
-**Platform:** Android Studio (Android)
-**Purpose:** Mobile app to control the mood lamp (e.g., power, colours, modes, brightness).
-
-### Key features
-- Simple UI for turning the lamp on/off
-- Colour selection and brightness control
-- Mode switching (e.g., static / rainbow, if supported by firmware)
-- Sends commands to the device over the configured connection method (e.g., Wi-Fi HTTP endpoints / BLE, depending on your setup)
+- Closed-loop **servo position control** using AS5600 feedback  
+- OLED **menu-driven UI** (SSD1306 128×64)  
+- Rotary encoder navigation with push-button input  
+- Multiple operating modes:
+  - Normal Mode
+  - Infinite Mode
+  - Education Mode
+  - Auto-Balance Mode
+- Persistent settings storage using **ESP32 Preferences (NVS)**  
+- Smooth servo motion with:
+  - Backlash compensation
+  - Direction-change pauses
+  - Speed ramping & slow zones
+- Educational question system:
+  - Numeric questions
+  - Word-based questions
+  - True / False logic  
 
 ---
 
+## 🔌 Hardware Overview
 
-## 4) OLED Image → Header Converter
-**Platform:** Python  
-**Purpose:** Convert images into `.h` bitmap arrays for OLED rendering.
-
-### Used for
-- Icons
-- Frames / simple animations
-- Custom display assets
+| Component | Quantity |
+|---------|----------|
+| ESP32 | 1 |
+| Servo Motor | 1 |
+| AS5600 Magnetic Encoder | 1 |
+| OLED Display (SSD1306 128×64) | 1 |
+| Rotary Encoder (with button) | 1 |
+| External Power Supply | 1 |
 
 ---
 
+## 📍 Pin Configuration
 
+| Function | ESP32 Pin |
+|--------|-----------|
+| Servo PWM | GPIO 4 |
+| Encoder CLK | GPIO 25 |
+| Encoder DT | GPIO 33 |
+| Encoder Button | GPIO 32 |
+| AS5600 Analog OUT | GPIO 34 |
+| OLED SDA | GPIO 21 |
+| OLED SCL | GPIO 22 |
 
+---
+
+## 🧭 Operating Modes
+
+### Normal Mode
+- Balance the lever to the target angle  
+- Servo moves to a new random position after each success  
+- Complete **10 successful balances** to finish  
+
+---
+
+### Infinite Mode
+- Endless balancing gameplay  
+- Difficulty increases dynamically  
+- Game ends if balancing takes too long  
+
+---
+
+### Education Mode
+- Lever must be balanced before answering  
+- Question types include:
+  - Force calculation
+  - Moment calculation
+  - Direction / stability interpretation
+  - True / False questions  
+- Immediate feedback provided  
+
+---
+
+### Auto-Balance Mode
+- Fully automatic servo control  
+- Continuously minimizes angle error  
+- Adaptive speed control:
+  - Fast when far from balance
+  - Slow near balance
+  - Super-slow fine tuning  
+- Displays live:
+  - Angle
+  - Error
+  - Servo position
+  - Control state  
+
+---
+
+## 🖥 User Interface
+
+- Rotate encoder to navigate menus  
+- Press encoder to confirm selections  
+- OLED displays:
+  - Mode selection
+  - Real-time angle feedback
+  - Game statistics
+  - Education questions & answers
+  - Auto-balance state information  
+
+---
+
+## 🧠 Control Strategy Overview
+
+- AS5600 **ADC output** used for smooth motion tracking  
+- AS5600 **I²C read** used for precision holding  
+- Dual-sensor strategy:
+  - **ADC** → motion & detection
+  - **I²C** → holding & accuracy  
+
+Includes:
+- Exponential Moving Average (EMA) filtering  
+- Trimmed-mean ADC sampling  
+- Deadband logic  
+- Hysteresis-based hold control  
+
+---
+
+## 💾 Persistent Settings
+
+Stored using **ESP32 Preferences (NVS)**:
+- Servo target angles  
+- Auto-balance center angle  
+- Calibration parameters  
+
+Settings persist across power cycles.
+
+---
+
+## 🚀 Setup Instructions
+
+1. Install required Arduino libraries  
+2. Wire hardware according to pin configuration  
+3. Flash firmware to the ESP32  
+4. Power the system using a **stable external supply**  
+5. Navigate menus using the rotary encoder  
+
+---
+
+## 🧪 Known Limitations
+
+- Single servo supported  
+- Fixed OLED resolution (128×64)  
+- Rule-based education questions  
+- No wireless connectivity  
+
+---
+
+## 🌱 Possible Improvements
+
+- Multi-servo support  
+- Wireless monitoring or data logging  
+- Adaptive education difficulty  
+- Modular `.h / .cpp` refactoring  
+- SD card logging  
+
+---
+
+## 👤 Author
+
+**Lewis Tan**  
+Singapore Polytechnic – EEE / FabLab  
+Educational Mechatronics & Interactive Systems Project
