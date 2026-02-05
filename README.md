@@ -197,6 +197,58 @@ The animation:
 After the animation completes, the system automatically transitions to the **main mode selection menu**.
 
 ---
+# 🛠 Bitmap Frame Generation Pipeline
+
+To support the animated start-up menu, a **custom Python conversion script** is used to convert image frames into Arduino-compatible bitmap header files.
+
+This enables visually designed animations to be efficiently stored and rendered on the ESP32 without requiring external storage.
+
+## Processing Steps
+
+1. Load image frames from the input directory  
+2. Convert images to **1-bit black and white**  
+3. Resize images to **128 × 64** to match the SSD1306 OLED  
+4. Pack pixels into bytes using correct OLED bit mapping  
+5. Store bitmap data in **PROGMEM**  
+6. Auto-generate frame indexing for animation playback  
+
+## Script Configuration
+
+```
+input_folder = "frames"
+output_folder = "output_h"
+bitmap_width = 128
+bitmap_height = 64
+```
+
+## Generated Output Structure
+
+```
+output_h/
+├── frame_01.h
+├── frame_02.h
+├── frame_03.h
+├── ...
+├── frames.h
+```
+
+## Frame Storage Format
+
+Each frame is stored as:
+
+```
+const unsigned char frame_name[] PROGMEM = { ... };
+```
+
+## frames.h Output
+
+The generated `frames.h` file:
+
+- Includes all frame headers automatically  
+- Defines a `frames[]` array in PROGMEM  
+- Defines `FRAME_COUNT` for animation control  
+
+
 
 ## 🚀 Setup Instructions
 
