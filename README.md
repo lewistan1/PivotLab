@@ -262,6 +262,5 @@ The generated `frames.h` file:
 
 ## 👤 Author
 
-**Lewis Tan**  
-Singapore Polytechnic – EEE / FabLab  
-Educational Mechatronics & Interactive Systems Project
+**Tan Kuan Seong Lewis**  
+Singapore Polytechnic – FabLab  
