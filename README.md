@@ -1,6 +1,8 @@
-# ESP32 Auto-Balance & Educational Lever System
+# PivotLab
+<img width="765" height="635" alt="image" src="https://github.com/user-attachments/assets/71b5fca6-1ab1-4f1c-b7a0-b4935a9525dd" />
 
-An ESP32-based **interactive lever balancing system** featuring multiple operating modes, real-time angle feedback, closed-loop servo control, and an OLED user interface.
+
+PivotLab features multiple operating modes, real-time angle feedback, closed-loop servo control, and an OLED user interface.
 
 Designed for **educational demonstrations**, **interactive gameplay**, and **automatic balance control** using an **AS5600 magnetic encoder**.
 
@@ -34,7 +36,7 @@ Designed for **educational demonstrations**, **interactive gameplay**, and **aut
 |---------|----------|
 | ESP32 | 1 |
 | Servo Motor | 1 |
-| AS5600 Magnetic Encoder | 1 |
+| AS5600 Magnetic Encoder | 2 |
 | OLED Display (SSD1306 128×64) | 1 |
 | Rotary Encoder (with button) | 1 |
 | External Power Supply | 1 |
@@ -52,6 +54,8 @@ Designed for **educational demonstrations**, **interactive gameplay**, and **aut
 | AS5600 Analog OUT | GPIO 34 |
 | OLED SDA | GPIO 21 |
 | OLED SCL | GPIO 22 |
+| AS5600 SDA | GPIO 21 |
+| AS5600 SCL | GPIO 22 |
 
 ---
 
@@ -145,26 +149,7 @@ Settings persist across power cycles.
 4. Power the system using a **stable external supply**  
 5. Navigate menus using the rotary encoder  
 
----
 
-## 🧪 Known Limitations
-
-- Single servo supported  
-- Fixed OLED resolution (128×64)  
-- Rule-based education questions  
-- No wireless connectivity  
-
----
-
-## 🌱 Possible Improvements
-
-- Multi-servo support  
-- Wireless monitoring or data logging  
-- Adaptive education difficulty  
-- Modular `.h / .cpp` refactoring  
-- SD card logging  
-
----
 
 ## 👤 Author
 
