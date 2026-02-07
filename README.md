@@ -55,6 +55,7 @@ The system is designed for **educational demonstrations**, **interactive gamepla
 | OLED SCL | GPIO 22 |
 | AS5600 SDA | GPIO 21 |
 | AS5600 SCL | GPIO 22 |
+<img width="1240" height="690" alt="image" src="https://github.com/user-attachments/assets/063b21f9-85ce-4c1d-8b75-913dcc1585f9" />
 
 ---
 
