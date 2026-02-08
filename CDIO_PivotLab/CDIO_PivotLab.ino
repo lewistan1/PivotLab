@@ -219,10 +219,24 @@ int servoUsage[7] = { 0, 0, 0, 0, 0, 0, 0 };
 int servoUsageGame[MAX_SERVO_POS] = { 0 };
 int lastGameIndex = -1;
 
-constexpr int EDU_POS_COUNT = 7;
-int eduAngles[EDU_POS_COUNT] = { 271, 197, 228, 175, 153, 197, 271 };
+constexpr int EDU_POS_COUNT = 6;
+int eduAngles[EDU_POS_COUNT] = { 308, 267, 237, 211, 192, 175};
 int eduUsage[EDU_POS_COUNT] = { 0 };
 int eduLastIndex = -1;
+// For word-based questions
+bool eduIsWordQuestion = false;
+bool eduIsTrueFalse = false;
+String eduOptionsText[4];
+String eduCorrectWord = "";
+int eduOptionCount = 4;  // default
+
+enum EduQuestionType {
+  Q_find_force,
+  Q_find_moment,
+  Q_total_weight,
+  Q_add_both,
+  Q_remove
+};
 
 inline bool isGameplayActive() {
   return detecting
@@ -234,19 +248,11 @@ inline bool isGameplayActive() {
          && !showResult;
 }
 
-enum EduQuestionType : uint8_t {
-  Q_ANGLE_INDEX,
-  Q_ANGLE_DIV10,
-  Q_ANGLE_PLUS_RANDOM,
-  Q_RANDOM_NUMBER,
-  Q_TABLE_LOOKUP
-};
-
-float answerTable_index[EDU_POS_COUNT] = { 1, 2, 3, 4, 5, 6, 7 };
-float answerTable_div10[EDU_POS_COUNT] = { 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1 };
-float answerTable_plusRandom[EDU_POS_COUNT] = { 1.2, 2.2, 3.2, 4.2, 5.2, 6.2, 7.2 };
-float answerTable_randomNum[EDU_POS_COUNT] = { 1.3, 2.3, 3.3, 4.3, 5.3, 6.3, 7.3 };
-float answerTable_lookup[EDU_POS_COUNT] = { 1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4 };
+float answerTable_force[EDU_POS_COUNT] = { 0.0, 9.8, 19.6, 29.4, 39.2, 49.0 };
+float answerTable_moment[EDU_POS_COUNT] = { 0.0, 161.7, 294.0, 367.5, 431.2, 490.0 };
+float answerTable_total_weight[EDU_POS_COUNT] = { 0, 1, 2, 3, 4, 5 };
+float answerTable_add_both[EDU_POS_COUNT] = { 0, 0, 1, 0, 0, 0 };
+float answerTable_remove[EDU_POS_COUNT] = { 2, 1, 1, 1, 1, 1 };
 
 EduQuestionType currentQuestion;
 
@@ -263,7 +269,6 @@ const uint8_t arrow[] PROGMEM = {
   0xff, 0xf0, 0xff, 0xf0, 0xfb, 0xf0, 0xf3, 0xf0, 0xc1, 0xf0, 0x00, 0x30,
   0x80, 0x10, 0xc0, 0x10, 0xf3, 0xc0, 0xfb, 0xe0, 0xff, 0xf0, 0xff, 0xf0
 };
-
 const uint8_t infos[] PROGMEM = {
   0xf8, 0x1f, 0xe7, 0xe7, 0xcf, 0xf3, 0x9e, 0x79, 0xbe, 0x7d, 0x7f, 0xfe, 0x7e, 0x7e, 0x7e, 0x7e,
   0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0xbe, 0x7d, 0x9e, 0x79, 0xcf, 0xf3, 0xe7, 0xe7, 0xf8, 0x1f
@@ -272,7 +277,6 @@ const uint8_t info[] PROGMEM = {
   0xf8, 0x1f, 0xe0, 0x07, 0xc0, 0x03, 0x81, 0x81, 0x81, 0x81, 0x00, 0x00, 0x01, 0x80, 0x01, 0x80,
   0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x81, 0x81, 0x81, 0x81, 0xc0, 0x03, 0xe0, 0x07, 0xf8, 0x1f
 };
-
 const uint8_t settingsIcon[] PROGMEM = {
   0xff, 0xff, 0xff, 0xff, 0xfe, 0x7f, 0xf6, 0x6f, 0xe0, 0x07, 0xf3, 0xcf, 0xf7, 0xef, 0xc7, 0xe3,
   0xc7, 0xe3, 0xf7, 0xef, 0xf3, 0xcf, 0xe0, 0x07, 0xf6, 0x6f, 0xfe, 0x7f, 0xff, 0xff, 0xff, 0xff
@@ -281,7 +285,6 @@ const uint8_t settingselected[] PROGMEM = {
   0xf8, 0x1f, 0xe0, 0x07, 0xc0, 0x03, 0x81, 0x81, 0x85, 0xa1, 0x0f, 0xf0, 0x07, 0xe0, 0x1e, 0x78,
   0x1e, 0x78, 0x07, 0xe0, 0x0f, 0xf0, 0x85, 0xa1, 0x81, 0x81, 0xc0, 0x03, 0xe0, 0x07, 0xf8, 0x1f
 };
-
 const uint8_t arrows[] PROGMEM = {
   0xff, 0xff, 0x80, 0xfc, 0xff, 0x80, 0xf8, 0x7f, 0x80, 0xf0, 0x7f, 0x80, 0xe0, 0x7f, 0x80, 0xc0,
   0x0f, 0x80, 0x80, 0x07, 0x80, 0x00, 0x03, 0x80, 0x80, 0x01, 0x80, 0xc0, 0x00, 0x80, 0xe0, 0x00,
@@ -696,7 +699,12 @@ void handleEncoder() {
       } else {
         // Question screen → options selectable
         eduSelected += (encPos > lastEncPos) ? 1 : -1;
-        eduSelected = constrain(eduSelected, 0, 4);
+
+        if (currentQuestion == Q_add_both) {
+          eduSelected = constrain(eduSelected, 0, 2);
+        } else {
+          eduSelected = constrain(eduSelected, 0, 4);
+        }
       }
       displayEducationPrompt();
       lastEncPos = encPos;
@@ -1086,56 +1094,221 @@ void startEducationMode() {
   displayBalanceMessage();
   Serial.println("Mode: EDUCATION");
 }
+String lookupToWord(float value, EduQuestionType q) {
+
+  switch (q) {
+
+    // -------------------------------
+    // BALANCE / POSITION QUESTIONS
+    // -------------------------------
+    /*case Q_remove:
+      if (value < 2.0) return "Very Left";
+      if (value < 3.0) return "Left";
+      if (value < 4.0) return "Slight Left";
+      if (value < 5.0) return "Balanced";
+      if (value < 6.0) return "Slight Right";
+      if (value < 7.0) return "Right";
+      return "Very Right";*/
+
+    // -------------------------------
+    // DIRECTION QUESTIONS
+    // -------------------------------
+    case Q_remove:
+      if (value == 1) return "Rotate Left";
+      if (value == 2) return "Stable";
+      if (value == 3) return "Rotate Right";
+      return "Oscillating";
+    // -------------------------------
+    // STABILITY QUESTIONS
+    // -------------------------------
+
+
+    // -------------------------------
+    // FALLBACK
+    // -------------------------------
+    default:
+      return "Unknown";
+  }
+}
 float getCorrectAnswerDynamic() {
   int i = eduLastIndex;  // <-- use education index
   if (i < 0) i = 0;
 
   switch (currentQuestion) {
-    case Q_ANGLE_INDEX: return answerTable_index[i];
-    case Q_ANGLE_DIV10: return answerTable_div10[i];
-    case Q_ANGLE_PLUS_RANDOM: return answerTable_plusRandom[i];
-    case Q_RANDOM_NUMBER: return answerTable_randomNum[i];
-    case Q_TABLE_LOOKUP: return answerTable_lookup[i];
+    case Q_find_force: return answerTable_force[i];
+    case Q_find_moment: return answerTable_moment[i];
+    case Q_total_weight: return answerTable_total_weight[i];
+    case Q_add_both: return answerTable_add_both[i];
+    case Q_remove: return answerTable_remove[i];
   }
   return 0;
 }
+
 void generateEducationOptions() {
+  eduOptionCount = 4;  // reset default
+
+
+  eduIsWordQuestion = false;
+  eduIsTrueFalse = false;
+
+  // -------------------------------------------------
+  // TRUE / FALSE (1 / 0)
+  // -------------------------------------------------
+  if (currentQuestion == Q_add_both) {
+
+    eduIsTrueFalse = true;
+    eduIsWordQuestion = false;
+    eduOptionCount = 2;
+
+    float correctVal = getCorrectAnswerDynamic();  // 0 or 1
+    eduAnswer = random(0, 2);                      // index 0 or 1
+
+    for (int i = 0; i < 4; i++) eduOptionsText[i] = "";
+
+    eduOptionsText[eduAnswer] = (correctVal == 1) ? "Yes" : "No";
+    eduOptionsText[1 - eduAnswer] = (correctVal == 1) ? "No" : "Yes";
+
+    return;
+  }
+
+  // -------------------------------------------------
+  // WORD-BASED QUESTIONS
+  // -------------------------------------------------
+  if (/*currentQuestion == Q_total_weight || */ currentQuestion == Q_remove) {
+
+    eduIsWordQuestion = true;
+
+    float correctVal = getCorrectAnswerDynamic();
+    eduCorrectWord = lookupToWord(correctVal, currentQuestion);
+
+    eduAnswer = random(0, 4);
+    for (int i = 0; i < 4; i++) eduOptionsText[i] = "";
+
+    eduOptionsText[eduAnswer] = eduCorrectWord;
+
+    // -------- word pool per question --------
+    String pool[7];
+    int poolSize = 0;
+
+    switch (currentQuestion) {
+
+      case Q_remove:
+        pool[0] = "Rotate Left";
+        pool[1] = "Stable";
+        pool[2] = "Rotate Right";
+        pool[3] = "Oscillating";
+        poolSize = 4;
+        break;
+
+
+
+      default:  // balance / lookup
+        pool[0] = "Very Left";
+        pool[1] = "Left";
+        pool[2] = "Slight Left";
+        pool[3] = "Balanced";
+        pool[4] = "Slight Right";
+        pool[5] = "Right";
+        pool[6] = "Very Right";
+        poolSize = 7;
+        break;
+    }
+
+    // -------- fill wrong options --------
+    for (int i = 0; i < 4; i++) {
+      if (i == eduAnswer) continue;
+
+      String w;
+      bool duplicate;
+
+      do {
+        duplicate = false;
+        w = pool[random(0, poolSize)];
+
+        // Check against correct answer
+        if (w == eduCorrectWord) {
+          duplicate = true;
+          continue;
+        }
+
+        // Check against already-filled options
+        for (int j = 0; j < 4; j++) {
+          if (j == i) continue;
+          if (eduOptionsText[j] == w && eduOptionsText[j] != "") {
+            duplicate = true;
+            break;
+          }
+        }
+
+      } while (duplicate);
+
+      eduOptionsText[i] = w;
+    }
+
+
+    return;
+  }
+
+  // -------------------------------------------------
+  // NUMERIC QUESTIONS
+  // -------------------------------------------------
+  // -------------------------------
+  float* answerPool = nullptr;
+  int poolSize = EDU_POS_COUNT;
+
+  switch (currentQuestion) {
+    case Q_find_force:
+      answerPool = answerTable_force;
+      break;
+
+    case Q_find_moment:
+      answerPool = answerTable_moment;
+      break;
+
+    case Q_total_weight:
+      answerPool = answerTable_total_weight;
+      break;
+
+    default:
+      answerPool = answerTable_total_weight;  // safety fallback
+      break;
+  }
 
   float correctValue = getCorrectAnswerDynamic();
 
-  // Random slot (0–3) for the correct answer
   int correctIndex = random(0, 4);
   eduAnswer = correctIndex;
 
-  // Reset options
   for (int i = 0; i < 4; i++) eduOptions[i] = -99999;
-
-  // Insert correct answer
   eduOptions[correctIndex] = correctValue;
 
-  // Generate three wrong answers
+  // ------------------------------------
+  // Build pool of other valid answers
+  // ------------------------------------
+  float pool[EDU_POS_COUNT];
+  int wrongPoolSize = 0;
+
+  for (int i = 0; i < poolSize; i++) {
+    float v = answerPool[i];
+    if (v != correctValue) {
+      pool[wrongPoolSize++] = v;
+    }
+  }
+  // ------------------------------------
+  // Pick wrong answers from pool
+  // ------------------------------------
   for (int i = 0; i < 4; i++) {
     if (i == correctIndex) continue;
 
-    int wrongVal;
     bool duplicate;
+    float candidate;
 
     do {
       duplicate = false;
+      candidate = pool[random(0, poolSize)];
 
-      // Generate wrong answer within a range ABOVE ZERO
-      // Example: correct ± 5, but never below 0
-      wrongVal = correctValue + random(-5, 6);
-
-      if (wrongVal < 0) wrongVal = 0;  // force non-negative
-      if (wrongVal == correctValue) {
-        duplicate = true;
-        continue;
-      }
-
-      // Prevent duplicates
       for (int j = 0; j < 4; j++) {
-        if (eduOptions[j] == wrongVal) {
+        if (eduOptions[j] == candidate) {
           duplicate = true;
           break;
         }
@@ -1143,9 +1316,11 @@ void generateEducationOptions() {
 
     } while (duplicate);
 
-    eduOptions[i] = wrongVal;
+    eduOptions[i] = candidate;
   }
 }
+
+
 void displayEducationPrompt() {
   if (detectforedu == 0) return;
 
@@ -1161,15 +1336,16 @@ void displayEducationPrompt() {
   String question;
 
   switch (currentQuestion) {
-    case Q_ANGLE_INDEX: question = "Which position is this?"; break;
-    case Q_ANGLE_DIV10: question = "Angle/10 = ?"; break;
-    case Q_ANGLE_PLUS_RANDOM: question = "Angle + offset = ?"; break;
-    case Q_RANDOM_NUMBER: question = "Select correct number"; break;
-    case Q_TABLE_LOOKUP: question = "Custom rule question"; break;
+    case Q_find_force: question = "Force(N) applied by placed weight?"; break;
+    case Q_find_moment: question = "What is the moment(Ncm) applied by the weight?"; break;
+    case Q_total_weight: question = "What is the total placed weight(kg)?"; break;  //not done
+    case Q_add_both: question = "Will it balance if 1kg is added to both sides?"; break;
+    case Q_remove: question = "If placed weight is removed what will happen?"; break;
   }
+  display.setFont(&Font5x7Fixed);
+  display.setTextSize(1);
 
-  display.setCursor(getCenteredX(question, 1), 12);
-  display.println(question);
+  int endOfQuestionY = printWrappedCenteredText5x7(question, 18);
 
 
   drawBackArrow(eduSelected == 0);
@@ -1177,23 +1353,42 @@ void displayEducationPrompt() {
   int rowHeight = 20;
   int colWidth = SCREEN_WIDTH / 2;
 
-  for (int i = 0; i < 4; i++) {
-    int col = i % 2;
-    int row = i / 2;
-    int y = 25 + row * rowHeight;
+  for (int i = 0; i < eduOptionCount; i++) {
+    int y;
 
-    String optionText = String(eduOptions[i], 1);
+    int col, row;
+    if (eduOptionCount == 2) {
+      col = i;  // left / right
+      row = 0;
+      y = 46 + row * rowHeight;
+    } else {
+      col = i % 2;
+      row = i / 2;
+      y = 36 + row * rowHeight;
+    }
+
+
+
+    String optionText;
+
+    if (eduIsWordQuestion || eduIsTrueFalse) {
+      optionText = eduOptionsText[i];
+    } else {
+      optionText = String(eduOptions[i], 1);
+    }
 
     if ((eduSelected - 1) == i)
       optionText = "> " + optionText;
 
     int textWidth = optionText.length() * 6;
     int x = col * colWidth + (colWidth - textWidth) / 2;
-
+    display.setFont(&Font5x7Fixed);
+    display.setTextSize(1);
     display.setCursor(x, y);
     display.println(optionText);
   }
 
+  display.setFont();
   display.display();
 }
 void displayBalanceMessage() {
@@ -1212,23 +1407,69 @@ void displayBalanceMessage() {
   display.display();
 }
 void displayEducationFeedback() {
+
   Serial.println("Mode: edu feed");
+  display.setFont();
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
   display.setTextSize(2);
-  String msg = (eduSelected == (eduAnswer + 1) ? "Correct!" : "Wrong!");
-  display.setCursor(getCenteredX(msg, 2), 20);
-  display.println(msg);
-  display.display();
-  delay(1000);
-  moveServoRandomEducation();
-  generateEducationOptions();  // generates new multiple-choice options
-  irMustReset = true;          // require IR to go HIGH before next detection
 
+  String msg = (eduSelected == (eduAnswer + 1)) ? "Correct!" : "";
+  display.setCursor(getCenteredX(msg, 2), 16);
+  display.println(msg);
+  if (eduSelected != (eduAnswer + 1)) {
+    if (currentQuestion == Q_find_moment) {
+      String msg = "Wrong \n Remember Moment(Ncm) is Force(N) X distance(cm)";
+      printWrappedCenteredText(msg, 9, 1);
+    } else if (currentQuestion == Q_find_force) {
+      String msg = "Remember Force (N) is Mass (kg) X gravity \n Where gravity is 9.8m/s^2";
+      printWrappedCenteredText(msg, 9, 1);
+    } else if (currentQuestion == Q_total_weight) {
+      String msg = "Wrong \n Total weight is the combine weight(kg) of right side";
+      printWrappedCenteredText(msg, 9, 1);
+    } else if (currentQuestion == Q_add_both) {
+      String msg = "Wrong \n You can test this by adding 1kg to both sides";
+      printWrappedCenteredText(msg, 9, 1);
+    } else if (currentQuestion == Q_remove) {
+      String msg = "Wrong \n You can test this by removing all placed weights";
+      printWrappedCenteredText(msg, 9, 1);
+    } 
+    
+    else {
+      String msg = "error";
+      printWrappedCenteredText(msg, 12, 1);
+    }
+  }
+
+  display.setTextSize(1);
+  display.setCursor(getCenteredX("Press to continue", 1), 50);
+  display.println("Press to continue");
+
+  display.display();
+
+  while (digitalRead(ENCODER_SW) == LOW) {
+    delay(10);
+  }
+
+  while (digitalRead(ENCODER_SW) == HIGH) {
+    delay(10);
+  }
+
+  while (digitalRead(ENCODER_SW) == LOW) {
+    delay(10);
+  }
+
+
+  moveServoRandomEducation();
+  generateEducationOptions();
+
+  irMustReset = true;
   eduSelected = 1;
   detectforedu = 0;
+
   displayEducationPrompt();
 }
+
 
 
 //font
@@ -1236,6 +1477,169 @@ int getCenteredX_Font5x7(String text) {
   int width = text.length() * 5;  // 5 px per character
   return (SCREEN_WIDTH - width) / 2;
 }
+void printWrappedCenteredText(String text, int startY, int textSize) {
+
+  int charWidth = 6 * textSize;
+  int lineHeight = 8 * textSize;
+  int maxCharsPerLine = SCREEN_WIDTH / charWidth;
+
+  display.setTextSize(textSize);
+
+  int y = startY;
+
+  int textLen = (int)text.length();
+  int paraStart = 0;
+
+  while (paraStart < textLen) {
+
+    // -----------------------------
+    // Find next newline
+    // -----------------------------
+    int paraEnd = text.indexOf('\n', paraStart);
+    if (paraEnd == -1) {
+      paraEnd = textLen;
+    }
+
+    // Extract paragraph
+    String paragraph = text.substring(paraStart, paraEnd);
+    int start = 0;
+    int paraLen = paragraph.length();
+
+    // -----------------------------
+    // Wrap THIS paragraph
+    // -----------------------------
+    while (start < paraLen) {
+
+      int remaining = paraLen - start;
+      int len = min(maxCharsPerLine, remaining);
+      int end = start + len;
+
+      // Break at space if possible
+      if (end < paraLen) {
+        while (end > start && paragraph[end] != ' ') {
+          end--;
+        }
+        if (end == start) {
+          end = start + len;  // force break
+        }
+      }
+
+      String line = paragraph.substring(start, end);
+      line.trim();
+
+      int x = getCenteredX(line, textSize);
+      display.setCursor(x, y);
+      display.println(line);
+
+      start = end + 1;
+      y += lineHeight;
+    }
+
+    // -----------------------------
+    // Newline = extra line spacing
+    // -----------------------------
+    y += lineHeight;
+    paraStart = paraEnd + 1;
+  }
+}
+int printWrappedCenteredText5x7(String text, int startY) {
+
+  display.setTextSize(1);
+  int y = startY;
+
+  int pos = 0;
+  int len = text.length();
+
+  while (pos < len) {
+
+    // -------- paragraph handling --------
+    int paraEnd = text.indexOf('\n', pos);
+    if (paraEnd == -1) paraEnd = len;
+
+    String paragraph = text.substring(pos, paraEnd);
+    pos = paraEnd + 1;
+
+    int i = 0;
+    int paraLen = paragraph.length();
+
+    while (i < paraLen) {
+
+      // skip spaces
+      while (i < paraLen && paragraph.charAt(i) == ' ') i++;
+      if (i >= paraLen) break;
+
+      String line = "";
+      int nextIndex = i;
+      bool wordPlaced = false;
+
+      // -------- build line word-by-word --------
+      while (nextIndex < paraLen) {
+
+        int wordEnd = paragraph.indexOf(' ', nextIndex);
+        if (wordEnd == -1) wordEnd = paraLen;
+
+        String word = paragraph.substring(nextIndex, wordEnd);
+        String testLine = line.length() ? line + " " + word : word;
+
+        int16_t x1, y1;
+        uint16_t w, h;
+        display.getTextBounds(testLine, 0, 0, &x1, &y1, &w, &h);
+
+        // ---------- word does not fit ----------
+        if (w > SCREEN_WIDTH - 2) {
+
+          // if no word yet, FORCE one word
+          if (!wordPlaced) {
+            line = word;
+            nextIndex = wordEnd;
+            wordPlaced = true;
+          }
+          break;
+        }
+
+        // ---------- word fits ----------
+        line = testLine;
+        nextIndex = wordEnd;
+        wordPlaced = true;
+
+        // skip space
+        if (nextIndex < paraLen && paragraph.charAt(nextIndex) == ' ') {
+          nextIndex++;
+        }
+      }
+
+      // -------- draw guaranteed non-empty line --------
+      if (line.length() > 0) {
+        int x = getCenteredX5x7(line);
+        display.setCursor(x, y);
+        display.print(line);
+        y += 8;
+      }
+
+      // -------- advance safely --------
+      i = nextIndex;
+    }
+  }
+
+  return y;
+}
+
+
+
+
+
+int getCenteredX5x7(const String& text) {
+  int16_t x1, y1;
+  uint16_t w, h;
+
+  display.getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
+  return (SCREEN_WIDTH - w) / 2 - x1;
+}
+
+
+
+
+
 
 
 // game
@@ -1353,7 +1757,7 @@ void displayInfoPage() {
   display.setTextSize(1);
 
   const char* infoText =
- 
+
     "\n"
     "[U][C]NORMAL MODE\n"
     "\n"
@@ -1417,7 +1821,6 @@ void displayInfoPage() {
     bool centerLine = false;
     bool underlineLine = false;
 
-    // allow multiple tags in any order at the start e.g. [CU] or [UC]
     bool tagsFound = true;
     while (tagsFound && line.startsWith("[")) {
       tagsFound = false;
@@ -1522,7 +1925,7 @@ void displayInfoPage() {
     int barWidth = 3;
     int barX = SCREEN_WIDTH - barWidth;
     int barHeight = (SCREEN_HEIGHT * SCREEN_HEIGHT) / totalHeight;
-    int barPos = (infoScroll * (SCREEN_HEIGHT - barHeight-1)) / infoScrollMax;
+    int barPos = (infoScroll * (SCREEN_HEIGHT - barHeight - 1)) / infoScrollMax;
     display.fillRect(barX, barPos, barWidth, barHeight, SSD1306_WHITE);
   }
 
@@ -1564,7 +1967,7 @@ void displayBlankMode() {
   if (desiredDir != 0 && lastMoveDir != 0 && desiredDir != lastMoveDir) {
     if (pauseUntilMs == 0) {
       pauseUntilMs = now + DIR_PAUSE_MS;
-      rampUntilMs  = pauseUntilMs + RAMP_MS;  // ✅ ramp starts after pause ends
+      rampUntilMs = pauseUntilMs + RAMP_MS;  // ✅ ramp starts after pause ends
     }
   }
 
@@ -1813,16 +2216,21 @@ int getSmartRandomEduIndex() {
 }
 
 void moveServoRandomEducation() {
+
   int idx = getSmartRandomEduIndex();
+
+  eduLastIndex = idx;  
 
   // Random question each round
   currentQuestion = (EduQuestionType)random(0, 5);
 
   int target = eduAngles[idx];
   gotoAS5600Target((float)target);
+
   active = true;
   holding = false;
 }
+
 void moveServoRandom() {
   for (int tries = 0; tries < 20; tries++) {
     int idx = getSmartRandomGameIndex();
@@ -2170,7 +2578,7 @@ void autoBalanceNearOnly() {
 
   float cur = readAS5600Deg();
   float err = shortestError(TARGET_DEG, cur);
-  float ae  = fabsf(err);
+  float ae = fabsf(err);
 
   // ✅ REMOVE this line (caller already gated assist mode)
   // if (ae > assist) return;
@@ -2206,8 +2614,8 @@ void holdLoopStep() {
   if (!active) return;
 
   // ---- pick ONE "gate" sensor for deciding assist vs hold ----
-  float cur_gate  = readAS5600Deg();            // OUT filtered
-  float err_gate  = shortestError(TARGET_DEG, cur_gate);
+  float cur_gate = readAS5600Deg();  // OUT filtered
+  float err_gate = shortestError(TARGET_DEG, cur_gate);
   float aerr_gate = fabsf(err_gate);
 
   uint32_t now = millis();
@@ -2236,8 +2644,8 @@ void holdLoopStep() {
   }
 
   // ---------- HOLD sensor (I2C) ----------
-  float cur_hold  = readAS5600Deg1();           // I2C
-  float err_hold  = shortestError(targetSensorDeg, cur_hold);
+  float cur_hold = readAS5600Deg1();  // I2C
+  float err_hold = shortestError(targetSensorDeg, cur_hold);
   float aerr_hold = fabsf(err_hold);
 
   // ---------- Serial debug (rate-limited) ----------
