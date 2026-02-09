@@ -220,7 +220,7 @@ int servoUsageGame[MAX_SERVO_POS] = { 0 };
 int lastGameIndex = -1;
 
 constexpr int EDU_POS_COUNT = 6;
-int eduAngles[EDU_POS_COUNT] = { 308, 267, 237, 211, 192, 175};
+int eduAngles[EDU_POS_COUNT] = { 307, 266, 236, 212, 193, 176};
 int eduUsage[EDU_POS_COUNT] = { 0 };
 int eduLastIndex = -1;
 // For word-based questions
@@ -1792,7 +1792,7 @@ void displayInfoPage() {
     "\n"
     "[C]==================\n"
     "[C]By:Lewis Tan\n"
-    "[C]DCPE/FT/3A/04\n"
+    "[C]DCPE/FT/3B/04\n"
     "\n"
     "\n";
 
