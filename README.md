@@ -253,11 +253,14 @@ The generated `frames.h` file:
 
 ## 🚀 Setup Instructions
 
-1. Install the required Arduino libraries  
-2. Wire all hardware according to the pin configuration  
-3. Flash the firmware to the ESP32  
-4. Power the system using a **stable external supply**  
-5. Navigate the interface using the rotary encoder  
+
+1.Source all the components
+2. Install the required Arduino libraries
+3. 3D print the 3D model
+4. Wire all hardware according to the pin configuration
+5. Download all the header files
+6. Flash the firmware to the ESP32  
+7. Power the system using a **stable external supply**  
 
 ---
 
