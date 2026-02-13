@@ -253,8 +253,7 @@ The generated `frames.h` file:
 
 ## 🚀 Setup Instructions
 
-
-1.Source all the components
+1. Source all the components
 2. Install the required Arduino libraries
 3. 3D print the 3D model
 4. Wire all hardware according to the pin configuration
